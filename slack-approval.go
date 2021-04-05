@@ -155,5 +155,8 @@ func main() {
 		}
 	}()
 
-	socketMode.Run()
+	err := socketMode.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
