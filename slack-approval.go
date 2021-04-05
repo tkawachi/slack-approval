@@ -6,11 +6,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/slack-go/slack/socketmode"
-
+	"github.com/pborman/getopt/v2"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
+	"github.com/slack-go/slack/socketmode"
 )
+
+var verbose bool
 
 func mustGetEnv(key string) string {
 	value, ok := os.LookupEnv(key)
@@ -21,15 +23,23 @@ func mustGetEnv(key string) string {
 }
 
 func main() {
+	getopt.FlagLong(&verbose, "verbose", 'v', "verbose output")
+	helpFlag := getopt.BoolLong("help", 'h', "show help")
+	getopt.SetParameters("message")
+	getopt.Parse()
+	if *helpFlag {
+		getopt.Usage()
+		os.Exit(1)
+	}
 	webApi := slack.New(
 		mustGetEnv("SLACK_BOT_TOKEN"),
 		slack.OptionAppLevelToken(mustGetEnv("SLACK_APP_TOKEN")),
-		slack.OptionDebug(true),
-		slack.OptionLog(log.New(os.Stdout, "api: ", log.Lshortfile|log.LstdFlags)),
+		slack.OptionDebug(verbose),
+		slack.OptionLog(log.New(os.Stderr, "api: ", log.Lshortfile|log.LstdFlags)),
 	)
 	socketMode := socketmode.New(
 		webApi,
-		socketmode.OptionDebug(true),
+		socketmode.OptionDebug(verbose),
 		socketmode.OptionLog(log.New(os.Stdout, "sm: ", log.Lshortfile|log.LstdFlags)),
 	)
 	authTest, authTestErr := webApi.AuthTest()
