@@ -12,10 +12,18 @@ import (
 	"github.com/slack-go/slack/slackevents"
 )
 
+func mustGetEnv(key string) string {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		log.Fatal("Environmental variable must be set:", key)
+	}
+	return value
+}
+
 func main() {
 	webApi := slack.New(
-		os.Getenv("SLACK_BOT_TOKEN"),
-		slack.OptionAppLevelToken(os.Getenv("SLACK_APP_TOKEN")),
+		mustGetEnv("SLACK_BOT_TOKEN"),
+		slack.OptionAppLevelToken(mustGetEnv("SLACK_APP_TOKEN")),
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(os.Stdout, "api: ", log.Lshortfile|log.LstdFlags)),
 	)
