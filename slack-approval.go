@@ -31,23 +31,23 @@ func main() {
 		getopt.Usage()
 		os.Exit(1)
 	}
-	webApi := slack.New(
+	webAPI := slack.New(
 		mustGetEnv("SLACK_BOT_TOKEN"),
 		slack.OptionAppLevelToken(mustGetEnv("SLACK_APP_TOKEN")),
 		slack.OptionDebug(verbose),
 		slack.OptionLog(log.New(os.Stderr, "api: ", log.Lshortfile|log.LstdFlags)),
 	)
 	socketMode := socketmode.New(
-		webApi,
+		webAPI,
 		socketmode.OptionDebug(verbose),
 		socketmode.OptionLog(log.New(os.Stdout, "sm: ", log.Lshortfile|log.LstdFlags)),
 	)
-	authTest, authTestErr := webApi.AuthTest()
+	authTest, authTestErr := webAPI.AuthTest()
 	if authTestErr != nil {
 		fmt.Fprintf(os.Stderr, "SLACK_BOT_TOKEN is invalid: %v\n", authTestErr)
 		os.Exit(1)
 	}
-	selfUserId := authTest.UserID
+	selfUserID := authTest.UserID
 
 	go func() {
 		for envelope := range socketMode.Events {
@@ -63,8 +63,8 @@ func main() {
 				case slackevents.CallbackEvent:
 					switch event := eventPayload.InnerEvent.Data.(type) {
 					case *slackevents.MessageEvent:
-						if event.User != selfUserId && strings.Contains(event.Text, "こんにちは") {
-							_, _, err := webApi.PostMessage(
+						if event.User != selfUserID && strings.Contains(event.Text, "こんにちは") {
+							_, _, err := webAPI.PostMessage(
 								event.Channel,
 								slack.MsgOptionText(
 									fmt.Sprintf(":wave: こんにちは <@%v> さん！", event.User),
@@ -133,7 +133,7 @@ func main() {
 								},
 							},
 						}
-						resp, err := webApi.OpenView(payload.TriggerID, modalView)
+						resp, err := webAPI.OpenView(payload.TriggerID, modalView)
 						if err != nil {
 							log.Printf("Failed to opemn a modal: %v", err)
 						}
