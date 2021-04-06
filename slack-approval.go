@@ -23,7 +23,23 @@ func mustGetEnv(key string) string {
 }
 
 func postApproveMessage(webAPI *slack.Client, channelID, message string) (string, error) {
-	// TODO
+	blockID := "myblock" // TODO
+
+	webAPI.PostMessage(channelID,
+		slack.MsgOptionText(message, true),
+		slack.MsgOptionBlocks(
+			slack.NewHeaderBlock(
+				slack.NewTextBlockObject("plain_text", message, true, false),
+			),
+			slack.NewDividerBlock(),
+			slack.NewActionBlock(
+				blockID,
+				slack.NewButtonBlockElement("approve", "1", slack.NewTextBlockObject("plain_text", "Approve", false, false)).WithStyle("primary"),
+				slack.NewButtonBlockElement("deny", "0", slack.NewTextBlockObject("plain_text", "Deny", false, false)),
+			),
+		),
+	)
+	return blockID, nil
 }
 
 func main() {
@@ -105,7 +121,7 @@ func main() {
 		}
 	}()
 
-	err := socketMode.Run()
+	err = socketMode.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
